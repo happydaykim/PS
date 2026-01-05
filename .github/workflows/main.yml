@@ -1,0 +1,57 @@
+name: CI and Sync to Organizer
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  ci-sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ 내 레포 체크아웃
+      - name: Checkout my repository
+        uses: actions/checkout@v4
+
+      # 3️⃣ SSH 설정 (Deploy Key)
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.ORGANIZER_DEPLOY_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+          
+      - name: Setup whoami
+        run: |
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+
+      # 4️⃣ organizer 레포로 동기화 (내 브랜치)
+      - name: Sync to organizer repository
+        env:
+          ORG_REPO: git@github.com:SKALA-Cloud-team-2/algorithm-study.git
+          USERNAME: ${{ github.actor }}
+        run: |
+          git clone $ORG_REPO algorithm-study
+          cd algorithm-study
+
+          # 내 전용 브랜치 (없으면 생성)
+          git checkout -B user/$USERNAME
+
+          # 내 풀이만 복사 (충돌 방지)
+          mkdir -p solutions/$USERNAME
+          
+          # [전체 동기화 설정]
+          # 1. --exclude='.*' : .git, .github, .vscode 등 점으로 시작하는 숨김 파일/폴더 모두 제외
+          # 2. --exclude='algorithm-study' : 방금 클론받은 폴더(무한 복사 방지) 제외
+          
+          rsync -av --delete \
+            --exclude='.*' \
+            --exclude='algorithm-study' \
+            $GITHUB_WORKSPACE/ \
+            solutions/$USERNAME/
+
+          git add solutions/$USERNAME
+
+          git commit -m "sync: update solutions from $USERNAME" || exit 0
+          git push origin user/$USERNAME
