@@ -10,6 +10,7 @@ def sol(N, K):
     times = [0] + list(map(int, input().split()))
     cost = times[:]
 
+    # topological sort
     for _ in range(K):
         a, b = map(int, input().split())
         indegree[b] += 1
@@ -29,6 +30,8 @@ def sol(N, K):
             print(cost[W])
             return
 
+        # cost calc. cost[nxt] = max(cost[nxt], cost[now] + times[nxt])
+        # 본 문제에서는 가장 오래걸리는 작업이 끝나야 정답이 되는 형태임.
         for nxt in graph[now]:
             indegree[nxt] -= 1
             cost[nxt] = max(cost[nxt], cost[now] + times[nxt])
