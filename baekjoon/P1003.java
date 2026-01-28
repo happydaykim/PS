@@ -4,7 +4,7 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 
-public class P1003 {
+class Main {
 
     static int zeroCount = 0;
     static int oneCount = 0;
@@ -35,15 +35,16 @@ public class P1003 {
     public static void main(String[] args) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         final int N = Integer.parseInt(br.readLine());
+        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
 
         for (int i = 0; i < N; i++) {
             int number = Integer.parseInt(br.readLine());
             zeroCount = 0;
             oneCount = 0;
             fibonacci(number);
-            System.out.println(zeroCount + " " + oneCount);
-            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(System.out));
             bw.write(zeroCount + " " + oneCount + "\n");
+            bw.flush();
         }
+        bw.close();
     }
 }
